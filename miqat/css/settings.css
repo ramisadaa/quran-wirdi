@@ -1,0 +1,305 @@
+/* ==================================================
+   شاشة الخيارات
+   ألوان الواجهة تتبع --main-color الذي يحدّثه script.js.
+   نافذة الإعدادات وزر Show منسّقان في هذا الملف فقط.
+   ================================================== */
+
+/* زر Show في مكان ثابت وواضح؛ نفس الاسم ونفس وظيفة الفتح والإغلاق. */
+.setting {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 1000;
+}
+
+.myBtn {
+  position: relative;
+  z-index: 3;
+}
+
+.show {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: static;
+  min-width: 46px;
+  min-height: 46px;
+  padding: 10px;
+  color: #fff;
+  font: 700 15px/1.5 var(--main-font, 'Calendar Arabic', sans-serif);
+  background: var(--main-color, #299e85);
+  border: 1px solid #ffffff80;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px #143c3026;
+  cursor: pointer;
+}
+
+.show:focus-visible {
+  outline: 3px solid #12382f;
+  outline-offset: 4px;
+}
+
+/* أيقونة إعدادات المستخدم محلية ولا تحتاج مكتبة خارجية. */
+.show .settings-user-icon { display: block; width: 25px; height: 25px; }
+.show .settings-user-icon svg { width: 100%; height: 100%; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+/* طبقة التعتيم تحت النافذة والزر، دون التأثير في تصميم الخلفية. */
+.setting.active::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: #102a244d;
+  backdrop-filter: blur(4px);
+}
+
+.setting .wind {
+  --settings-accent: var(--main-color, #299e85);
+  --settings-text: #24342f;
+  --settings-muted: #43564b;
+  --settings-border: #e2e9e5;
+
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  height: auto;
+  width: min(800px, calc(100vw - 48px));
+  overscroll-behavior: contain;
+  max-height: calc(100vh - 128px);
+  max-height: calc(100svh - 128px);
+  overflow-y: auto;
+  padding: 30px;
+  direction: rtl;
+  color: var(--settings-text);
+  font-family: var(--main-font, 'Calendar Arabic', sans-serif);
+  font-size: 14px;
+  line-height: 1.8;
+  text-align: right;
+  background: #fff;
+  border: 1px solid var(--settings-border);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px #183b2c26, 0 4px 16px #183b2c0d;
+  scrollbar-width: thin;
+  scrollbar-color: var(--settings-accent) #edf2ef;
+}
+
+.setting .wind:not(.active) {
+  display: none;
+}
+
+.setting .wind.active {
+  display: block;
+}
+
+.setting .wind,
+.setting .wind * {
+  box-sizing: border-box;
+}
+
+/* القسم الأول: الألوان والخطوط */
+.setting .settings-section {
+  margin: 0;
+}
+
+.setting .settings-section-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 24px;
+  color: var(--settings-text);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.setting .settings-section-title::before {
+  content: '';
+  flex: 0 0 5px;
+  height: 26px;
+  background: var(--settings-accent);
+  border-radius: 8px;
+}
+
+.setting .settings-options {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 24px;
+}
+
+.setting .settings-option {
+  min-width: 0;
+  padding: 20px;
+  background: #f7faf8;
+  border: 1px solid var(--settings-border);
+  border-radius: 18px;
+}
+
+.setting .settings-label {
+  margin: 0 0 18px;
+  color: var(--settings-muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+/* دوائر الألوان: الكلاسات والمتغيرات مطابقة لملف JavaScript. */
+.setting .theme-colors {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 4px;
+}
+
+.setting .theme-colors .color-circle {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  font-size: 22px;
+  line-height: 1;
+  background: var(--circle-color, #299e85);
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #d8e2dc;
+  cursor: pointer;
+  appearance: none;
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.setting .theme-colors .color-circle:hover {
+  transform: translateY(-2px);
+}
+
+.setting .theme-colors .color-circle.active {
+  box-shadow: 0 0 0 3px var(--circle-color, #299e85);
+}
+
+.setting .theme-colors .color-circle.active::after {
+  content: '\2713';
+}
+
+/* أزرار الخطوط */
+.setting .theme-font {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.setting .theme-font .font-circle {
+  min-width: 0;
+  min-height: 46px;
+  padding: 10px 12px;
+  color: var(--settings-text);
+  font-family: var(--circle-font, inherit);
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  background: #fff;
+  border: 2px solid #e2e9e5;
+  border-radius: 12px;
+  cursor: pointer;
+  appearance: none;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.setting .theme-font .font-circle:hover {
+  border-color: var(--settings-accent);
+}
+
+.setting .theme-font .font-circle.active {
+  color: var(--settings-accent);
+  background: #fff;
+  border-color: var(--settings-accent);
+  box-shadow: inset 0 -3px 0 var(--settings-accent);
+}
+
+.setting .wind button:focus-visible {
+  outline: 3px solid var(--settings-accent);
+  outline-offset: 5px;
+}
+
+/* الخط الفاصل بين القسمين */
+.setting .settings-divider {
+  height: 1px;
+  margin: 30px 0;
+  background: var(--settings-border);
+  border: 0;
+}
+
+/* القسم الثاني: العنوان فقط، وباقي المساحة فارغ حاليًا. */
+.setting .settings-section--content {
+  min-height: 140px;
+}
+
+@media (max-width: 600px) {
+  .setting {
+    bottom: 16px;
+    left: 16px;
+  }
+
+  .setting .wind {
+    width: calc(100vw - 32px);
+    max-height: calc(100vh - 128px);
+    max-height: calc(100svh - 128px);
+    padding: 22px 18px;
+    border-radius: 20px;
+  }
+
+  .setting .settings-options {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .setting .settings-section-title {
+    font-size: 19px;
+    margin-bottom: 18px;
+  }
+
+  .setting .settings-option {
+    padding: 18px;
+  }
+
+  .setting .settings-divider {
+    margin: 24px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .setting .wind button {
+    transition: none;
+  }
+}
+
+/* الإعدادات المكتملة */
+.setting .settings-dialog-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 26px; padding-bottom: 18px; border-bottom: 1px solid var(--settings-border); }
+.setting .settings-dialog-top h2 { margin: 0; font-size: 19px; }
+.setting #closeSettings { width: 40px; height: 40px; border: 1px solid var(--settings-border); border-radius: 12px; color: var(--settings-accent); background: #fff; font: inherit; font-size: 24px; line-height: 1; cursor: pointer; }
+.setting .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.setting .settings-wide { grid-column: 1 / -1; }
+.setting .settings-field { display: grid; gap: 7px; min-width: 0; color: var(--settings-muted); font-size: 14px; }
+.setting .settings-field input:not([type="range"]), .setting .settings-field select { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; color: var(--settings-text); border: 1px solid var(--settings-border); border-radius: 10px; background: #fff; font: inherit; }
+.setting .settings-field input[type="range"] { width: 100%; accent-color: var(--settings-accent); }
+.setting .settings-field output { color: var(--settings-accent); font-weight: 700; }
+.setting .settings-toggles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 24px; }
+.setting .settings-toggles label { display: flex; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--settings-border); border-radius: 10px; font-size: 14px; }
+.setting .settings-toggles input { width: 18px; height: 18px; accent-color: var(--settings-accent); }
+.setting .settings-action { min-height: 44px; padding: 10px; border: 1px solid var(--settings-accent); border-radius: 10px; color: #fff; background: var(--settings-accent); font: inherit; font-size: 14px; cursor: pointer; }
+.setting .settings-action--secondary { color: var(--settings-accent); background: #fff; }
+.setting .settings-action:disabled { opacity: .5; cursor: wait; }
+@media (max-width: 600px) { .setting .settings-grid { grid-template-columns: minmax(0, 1fr); } .setting .settings-toggles { grid-template-columns: minmax(0, 1fr); } }
+
+/* زر الإعدادات داخل الترويسة؛ لا يطفو فوق أرقام الكروت. */
+.myBtn { display: flex; justify-content: center; margin-top: 16px; }
+.setting { position: static; }
+.setting.active { position: fixed; inset: 0; z-index: 1000; }
+.setting .wind { max-height: calc(100svh - 32px); width: min(800px, calc(100vw - 32px)); }
+.settings-check { display: flex; align-items: center; gap: 10px; color: #43564b; font-size: 14px; line-height: 1.9; }
+.settings-check input { width: 20px; height: 20px; flex-shrink: 0; }
+.setting #closeSettings { min-width: 44px; min-height: 44px; }

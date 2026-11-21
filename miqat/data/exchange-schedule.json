@@ -1,0 +1,13 @@
+{
+  "timezone": "Asia/Hebron",
+  "times": [
+    "08:15",
+    "13:15",
+    "18:15"
+  ],
+  "maxDailyRequests": 3,
+  "maxMonthlyRequests": 100,
+  "usageAlreadyConsumed": 0,
+  "usageMonth": "2026-11",
+  "historyDays": 7
+}

@@ -1,0 +1,125 @@
+name: Update shared rates and deploy dashboard
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+  schedule:
+    - cron: '15 8 * * *'
+      timezone: 'Asia/Hebron'
+    - cron: '15 13 * * *'
+      timezone: 'Asia/Hebron'
+    - cron: '15 18 * * *'
+      timezone: 'Asia/Hebron'
+permissions: {}
+concurrency:
+  group: daily-dashboard-production
+  cancel-in-progress: false
+jobs:
+  checks:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci.yml
+
+  update:
+    needs: checks
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    outputs:
+      provider_failed: ${{ steps.refresh.outcome == 'failure' }}
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+      - name: Configure commit author
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+      - name: Read original workflow time
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/capture_run.py
+      - name: Reserve explicit occurrence
+        id: reserve
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        env:
+          EXCHANGERATE_API_KEY: ${{ secrets.EXCHANGERATE_API_KEY }}
+          SCHEDULE_CRON: ${{ github.event.schedule }}
+        run: python3 tools/update_exchange_rates.py reserve
+      - name: Persist reservation before contacting account API
+        if: steps.reserve.outputs.should_fetch == 'true'
+        run: |
+          git add data/exchange-update-state.json
+          git commit -m 'chore: reserve one scheduled exchange request'
+          python3 tools/push_changes.py
+      - name: Fetch account once
+        id: refresh
+        if: steps.reserve.outputs.should_fetch == 'true'
+        continue-on-error: true
+        env:
+          EXCHANGERATE_API_KEY: ${{ secrets.EXCHANGERATE_API_KEY }}
+          EXCHANGE_RESERVATION_ID: ${{ steps.reserve.outputs.reservation_id }}
+        run: python3 tools/update_exchange_rates.py fetch
+      - name: Preserve fetched result before attempting push
+        if: always() && (steps.refresh.outcome == 'success' || steps.refresh.outcome == 'failure')
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: exchange-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            data/exchange-rates.json
+            data/exchange-update-state.json
+          retention-days: 7
+      - name: Commit and rebase result
+        if: always() && (steps.refresh.outcome == 'success' || steps.refresh.outcome == 'failure')
+        run: |
+          git add data/exchange-rates.json data/exchange-update-state.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: save shared exchange snapshot and quota ledger'
+            python3 tools/push_changes.py
+          fi
+
+  publish:
+    needs: [checks, update]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+      - name: Reject untested concurrent application changes
+        env:
+          TESTED_SHA: ${{ github.sha }}
+        run: python3 tools/check_tested_source.py
+      - name: Verify final source and prepare public files
+        run: |
+          python3 tools/prepare_pwa.py
+          node tests/test_core.cjs
+          node tests/test_currency.cjs
+          node tests/test_ui.cjs
+          node tests/test_sw.cjs
+          python3 tools/build_site.py --output public
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b
+      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b
+        with:
+          path: public
+      - name: Publish site
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e
+      - name: Report provider error after retaining last valid site
+        if: needs.update.outputs.provider_failed == 'true'
+        run: exit 1

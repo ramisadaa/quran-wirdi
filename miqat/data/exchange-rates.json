@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "latest": {
+    "date": "2026-11-04",
+    "fetchedAt": "2026-11-04T09:41:01+00:00",
+    "slot": "initial",
+    "provider": "Currency API",
+    "providerUrl": "https://github.com/fawazahmed0/exchange-api",
+    "base": "USD",
+    "quotes": {
+      "USD": 1,
+      "ILS": 3.1718417590983647,
+      "EUR": 0.890364591791578,
+      "JOD": 0.7090000121798724
+    }
+  },
+  "snapshots": [
+    {
+      "date": "2026-11-04",
+      "fetchedAt": "2026-11-04T09:41:01+00:00",
+      "slot": "initial",
+      "provider": "Currency API",
+      "providerUrl": "https://github.com/fawazahmed0/exchange-api",
+      "base": "USD",
+      "quotes": {
+        "USD": 1,
+        "ILS": 3.1718417590983647,
+        "EUR": 0.890364591791578,
+        "JOD": 0.7090000121798724
+      }
+    }
+  ]
+}

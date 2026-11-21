@@ -1,0 +1,226 @@
+/* ألوان الخلفيات — عدّل القيم هنا لتخصيص كل لون. */
+
+/* الأخضر */
+.scene,
+.scene[data-background="green"] {
+  --scene-base: #cce6de;
+  --glow-left: #cff4b59c;
+  --glow-right: #1b9b75b0;
+  --background-top: #299e85;
+  --background-upper: #38a98a;
+  --background-middle: #81cbb0;
+  --background-lower: #dceee8;
+  --background-bottom: #edf4f3;
+  --wave-edge: #e2f9e52e;
+  --wave-shadow: #f2fff226;
+  --wave-outline: #e9ffed54;
+  --orb-tint: #d0f5dc22;
+  --orb-small: #b9ebcd0d;
+  --light-line: #ebffc6a8;
+  --light-glow: #e8ffd0;
+  --light-dot: #ddffbd77;
+  --light-dot-glow: #e6ffc5;
+  --spark-color: #ecffd1b3;
+  --spark-glow: #e9ffc74d;
+  --title-shadow: #176e5766;
+  --subtitle-shadow: #216e5866;
+  --title-line: #d6f3e7b3;
+}
+
+/* الأزرق */
+.scene[data-background="blue"] {
+  --scene-base: #cfdfef;
+  --glow-left: #c0e8ff9c;
+  --glow-right: #246eb0b0;
+  --background-top: #347bad;
+  --background-upper: #498ec1;
+  --background-middle: #8bbddd;
+  --background-lower: #e0edf6;
+  --background-bottom: #eff4f9;
+  --wave-edge: #e1f2ff2e;
+  --wave-shadow: #edf7ff26;
+  --wave-outline: #e5f4ff54;
+  --orb-tint: #c9e8ff22;
+  --orb-small: #bcdfff0d;
+  --light-line: #d2edffa8;
+  --light-glow: #dcefff;
+  --light-dot: #c9e8ff77;
+  --light-dot-glow: #d4ecff;
+  --spark-color: #def2ffb3;
+  --spark-glow: #d2eeff4d;
+  --title-shadow: #24547b66;
+  --subtitle-shadow: #285c8466;
+  --title-line: #d9efffb3;
+}
+
+/* العنابي */
+.scene[data-background="burgundy"] {
+  --scene-base: #ead5de;
+  --glow-left: #ffd2da9c;
+  --glow-right: #9b325cb0;
+  --background-top: #963b62;
+  --background-upper: #ac5277;
+  --background-middle: #d29bae;
+  --background-lower: #f2e3e9;
+  --background-bottom: #faf0f4;
+  --wave-edge: #ffe5ed2e;
+  --wave-shadow: #fff0f526;
+  --wave-outline: #ffe7ef54;
+  --orb-tint: #ffd3e022;
+  --orb-small: #f2bfd00d;
+  --light-line: #ffd7e7a8;
+  --light-glow: #ffe2ec;
+  --light-dot: #ffd0e177;
+  --light-dot-glow: #ffdae8;
+  --spark-color: #ffe3edb3;
+  --spark-glow: #ffdaea4d;
+  --title-shadow: #63223e66;
+  --subtitle-shadow: #76334f66;
+  --title-line: #f8dce9b3;
+}
+
+.scene {
+  background: var(--scene-base);
+}
+
+/* =====================================================
+   1 ـ الخلفية: تصميم مستقل عن الكرت
+   ===================================================== */
+
+
+.scene-background {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 13% 48%, var(--glow-left) 0%, transparent 40%), radial-gradient(ellipse at 100% 4%, var(--glow-right) 0%, transparent 53%), radial-gradient(ellipse at 47% 104%, #fffffff2 0%, transparent 62%), linear-gradient(180deg, var(--background-top) 0%, var(--background-upper) 22%, var(--background-middle) 45%, var(--background-lower) 76%, var(--background-bottom) 100%);
+}
+
+.scene-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: .2;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, #fff1 3px 4px), repeating-linear-gradient(90deg, transparent 0 4px, #fff1 4px 5px);
+}
+
+/* شريطان شفافان يصنعان التموج المنحني. */
+.wave {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.wave-one {
+  width: 138%;
+  height: 86%;
+  left: -20%;
+  top: -20%;
+  transform: rotate(-9deg);
+  border-bottom: clamp(22px, 6vw, 75px) solid var(--wave-edge);
+  box-shadow: 0 17px 0 var(--wave-shadow), 0 35px 0 #ffffff16;
+}
+
+.wave-two {
+  width: 150%;
+  height: 83%;
+  left: -23%;
+  top: -16%;
+  transform: rotate(-14deg);
+  border-bottom: 1px solid var(--wave-outline);
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.orb-one {
+  width: 19%;
+  aspect-ratio: 1;
+  right: -7%;
+  top: 12%;
+  background: linear-gradient(140deg, var(--orb-tint), #ffffff0a);
+  box-shadow: inset 5px 0 12px #f7fff511;
+}
+
+.orb-two {
+  width: 19%;
+  aspect-ratio: 1;
+  right: -13%;
+  top: 3%;
+  background: var(--orb-small);
+}
+
+.light-line {
+  position: absolute;
+  height: 1px;
+  width: 12%;
+  left: 0;
+  top: 29%;
+  background: linear-gradient(90deg, #fff1, var(--light-line));
+  box-shadow: 0 0 8px var(--light-glow);
+}
+
+.light-line::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--light-dot);
+  box-shadow: 0 0 8px var(--light-dot-glow);
+}
+
+.light-line.second {
+  top: 31%;
+  width: 9%;
+  opacity: .55;
+}
+
+.light-line.third {
+  top: 57%;
+  width: 17%;
+  left: auto;
+  right: 0;
+  opacity: .4;
+}
+
+.spark {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--spark-color);
+  box-shadow: 0 0 7px 2px var(--spark-glow);
+}
+
+.spark:nth-of-type(1) {
+  left: 10%;
+  top: 38%;
+}
+
+.spark:nth-of-type(2) {
+  left: 17%;
+  top: 47%;
+  width: 2px;
+  height: 2px;
+}
+
+.spark:nth-of-type(3) {
+  left: 4%;
+  top: 45%;
+  width: 2px;
+  height: 2px;
+  opacity: .5;
+}
+
+.spark:nth-of-type(4) {
+  right: 16%;
+  top: 31%;
+  width: 2px;
+  height: 2px;
+  opacity: .4;
+}

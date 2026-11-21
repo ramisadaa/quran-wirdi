@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com https://cdn.jsdelivr.net https://*.currency-api.pages.dev; form-action 'self'">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة يومك</title>
+  <meta name="description" content="التاريخ الهجري ومواقيت الصلاة والطقس وأسعار العملات والأدعية النبوية في لوحة عربية واحدة.">
+  <meta name="theme-color" content="#299e85">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/backgrounds.css">
+  <link rel="stylesheet" href="css/cards.css">
+  <link rel="stylesheet" href="css/settings.css">
+</head>
+<body>
+  <!-- ألوان الخلفية: green | blue | burgundy -->
+  <main id="scene" class="scene" data-background="green">
+
+    <!-- 1. الخلفية والزخارف -->
+    <div class="scene-background" aria-hidden="true">
+      <div class="wave wave-one"></div>
+      <div class="wave wave-two"></div>
+      <div class="orb orb-one"></div>
+      <div class="orb orb-two"></div>
+      <div class="light-line"></div>
+      <div class="light-line second"></div>
+      <div class="light-line third"></div>
+      <span class="spark"></span>
+      <span class="spark"></span>
+      <span class="spark"></span>
+      <span class="spark"></span>
+    </div>
+
+    <!-- الكروت الخمسة بنفس الإطار، ومرتبة رأسيًا على جميع الشاشات. -->
+    <div class="composition">
+      <header class="intro">
+        <img src="./logo2.png" alt="اللوجو" class="logo" width="320" >
+    <div class="myBtn">
+        <button class="show" type="button" aria-controls="settingsPanel" aria-expanded="false" aria-label="الإعدادات" title="الإعدادات">
+          <span class="settings-user-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><circle cx="12" cy="9" r="5"/><path d="M3 28v-3a9 9 0 0 1 14-7"/><circle cx="24" cy="24" r="4"/><path d="M24 17v2m0 10v2m-7-7h2m10 0h2m-12-5 1.5 1.5m7 7L29 29m0-10-1.5 1.5m-7 7L19 29"/></svg></span>
+        </button>
+    </div>
+      </header>
+
+      <span class="crescent" aria-hidden="true"></span>
+
+      <div class="cards-container">
+        <div class="card-slot">
+          <!-- لون الكرت مستقل عن لون الخلفية: green | blue | burgundy -->
+          <article id="dateCard" class="date-card app-card textfont" data-card="green" aria-label="التاريخ الهجري والميلادي">
+            <div class="card-surface">
+              <div class="card-top">
+                <span class="today-label">اليوم</span>
+    
+                <svg id="moonGraphic" class="moon-phase" viewBox="0 0 44 44" role="img" aria-label="طور القمر التقريبي">
+                  <circle cx="22" cy="22" r="20" fill="#3f554b"/>
+                  <path id="moonLit" fill="#f4e7b8" d="M22 2A20 20 0 1 1 22 42A20 20 0 1 1 22 2Z"/>
+                  <circle cx="14" cy="15" r="4" fill="#988b66" opacity=".24"/>
+                  <circle cx="27" cy="29" r="3" fill="#988b66" opacity=".24"/>
+                </svg>
+              </div>
+    
+              <!-- التاريخ الحالي يتحدث تلقائيًا. -->
+              <h2 id="hijriDate" class="hijri-date card-primary">
+                <bdi id="hijriDay">—</bdi>
+                <span id="hijriMonth">جارٍ التحميل</span>
+                <bdi id="hijriYear">—</bdi>
+                <span class="era">هـ.</span>
+              </h2>
+    
+              <div class="card-divider" aria-hidden="true"></div>
+    
+              <p id="gregorianDate" class="gregorian-date">—</p>
+            </div>
+          </article>
+        </div>
+        <div class="card-slot">
+          <article id="prayerCard" class="prayer-card app-card textfont" data-card="green" aria-label="مواقيت الصلاة">
+            <div class="card-surface">
+              <!-- مغلق افتراضيًا، والضغط على الملخص يفتح ويغلق الجدول. -->
+              <details id="prayerDetails" class="prayer-details">
+                <summary class="prayer-summary" title="اضغط لعرض أو إخفاء جميع المواقيت" aria-describedby="prayerExpandHint">
+                  <span class="card-top">
+                    <span class="today-label">التالي</span>
+                    <span class="prayer-clock" aria-hidden="true"></span>
+                  </span>
+                  <span id="nextPrayerLine" class="card-primary prayer-primary">
+                    <span id="nextPrayerName">حدّد المدينة</span>
+                    <span id="nextPrayerTime" dir="ltr">--:--</span>
+                  </span>
+                  <span class="card-divider prayer-summary-divider" aria-hidden="true"></span>
+                  <span class="gregorian-date prayer-remaining">متبقي <span id="prayerCountdown" class="prayer-countdown" dir="ltr" aria-live="off">--:--:--</span></span>
+                  <span id="prayerExpandHint" class="prayer-expand-hint">اضغط لعرض جميع المواقيت</span>
+                </summary>
+
+                <div class="prayer-schedule">
+                  <h2 class="prayer-schedule-title">مواقيت الصلاة اليوم</h2>
+                  <p id="prayerLocation" class="prayer-location">اختر المدينة أو موقعك لعرض المواقيت.</p>
+                  <p id="prayerStatus" class="prayer-status" role="status"></p>
+                  <dl id="prayerTimes" class="prayer-times">
+                  <div class="prayer-row" data-prayer="fajr">
+                    <dt>الفجر</dt>
+                    <dd id="fajrTime" dir="ltr">--:--</dd>
+                  </div>
+                  <div class="prayer-row prayer-row--sunrise" data-prayer="sunrise">
+                    <dt>الشروق</dt>
+                    <dd id="sunriseTime" dir="ltr">--:--</dd>
+                  </div>
+                  <div class="prayer-row" data-prayer="dhuhr">
+                    <dt>الظهر</dt>
+                    <dd id="dhuhrTime" dir="ltr">--:--</dd>
+                  </div>
+                  <div class="prayer-row" data-prayer="asr">
+                    <dt>العصر</dt>
+                    <dd id="asrTime" dir="ltr">--:--</dd>
+                  </div>
+                  <div class="prayer-row" data-prayer="maghrib">
+                    <dt>المغرب</dt>
+                    <dd id="maghribTime" dir="ltr">--:--</dd>
+                  </div>
+                  <div class="prayer-row" data-prayer="isha">
+                    <dt>العشاء</dt>
+                    <dd id="ishaTime" dir="ltr">--:--</dd>
+                  </div>
+                  </dl>
+
+<button id="changePrayerLocation" class="prayer-action prayer-action--secondary" type="button">تغيير الموقع وطريقة الحساب</button>
+                  <p class="prayer-method-note">حساب محلي بمكتبة Adhan. يعمل دون إنترنت بعد حفظ الموقع. راجع طريقة الحساب والتوقيت المحلي المعتمد.</p>
+                </div>
+              </details>
+              <div class="prayer-setup"><button id="prayerSetup" class="widget-action" type="button">اختيار المدينة</button></div>
+            </div>
+          </article>
+        </div>
+
+        <!-- الكرت الثالث: بيانات الموقع افتراضيًا، وتحديث مجاني شخصي عند الضغط. -->
+        <div class="card-slot">
+          <article id="currencyCard" class="currency-card app-card textfont" data-card="green" aria-labelledby="currencyTitle">
+            <div class="card-surface">
+              <div class="card-top">
+                <span id="currencyBadge" class="today-label">مشترك</span>
+                <svg class="widget-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect x="3" y="7" width="26" height="18" rx="3"/><path d="M8 7v4H3m26 0h-5V7M3 21h5v4m16 0v-4h5"/><circle cx="16" cy="16" r="5"/><path d="M16 12v8m2-6h-3a1 1 0 0 0 0 2h2a1 1 0 0 1 0 2h-3"/></svg>
+              </div>
+              <h2 id="currencyTitle" class="widget-title">أسعار العملات</h2>
+              <dl class="currency-rates">
+                <div class="rate-row">
+                  <dt>دولار أمريكي <bdi>USD</bdi></dt>
+                  <dd id="rateUSD" dir="ltr">—</dd>
+                </div>
+                <div class="rate-row">
+                  <dt>يورو <bdi>EUR</bdi></dt>
+                  <dd id="rateEUR" dir="ltr">—</dd>
+                </div>
+                <div class="rate-row">
+                  <dt>دينار أردني <bdi>JOD</bdi></dt>
+                  <dd id="rateJOD" dir="ltr">—</dd>
+                </div>
+              </dl>
+              <p id="currencyBaseLabel" class="widget-note">سعر الوحدة مقابل ILS</p>
+              <div class="widget-toolbar"><button id="refreshCurrency" class="widget-action" type="button" title="جلب أحدث أسعار الخدمة المجانية لهذا العرض فقط، دون استهلاك حصة حساب الموقع">تحديث الآن</button><a id="currencySource" href="https://github.com/fawazahmed0/exchange-api" target="_blank" rel="noopener noreferrer">مصدر الأسعار</a></div>
+              <p id="currencyMeta" class="widget-note"></p>
+              <p id="currencyStatus" class="widget-status" role="status">جارٍ تحميل الأسعار…</p>
+              <p class="widget-note">أسعار مرجعية • التحديث اليدوي من الخدمة المجانية</p>
+            </div>
+          </article>
+        </div>
+
+        <!-- الكرت الرابع: الطقس حسب الموقع المختار من Open-Meteo. -->
+        <div class="card-slot">
+          <article id="weatherCard" class="weather-card app-card textfont" data-card="green" aria-labelledby="weatherTitle">
+            <div class="card-surface">
+              <div class="card-top">
+                <span id="weatherBadge" class="today-label">الطقس</span>
+                <span id="weatherCity" class="weather-header-label">الموقع غير محدد</span>
+              </div>
+              <h2 id="weatherTitle" class="widget-title">الطقس</h2>
+              <div class="weather-overview">
+                <div class="weather-temperature">
+                  <span id="temperature" class="temperature-number" dir="ltr">—</span>
+                  <span id="weatherCondition" class="weather-condition">اختر المدينة</span>
+                </div>
+                <div id="weatherArt" class="weather-art" data-condition="partial" aria-label="حالة الطقس" role="img">
+                  <svg class="sun-icon" viewBox="0 0 80 80" fill="none" aria-hidden="true"><g class="sun-rays"><path d="M40 4v9m0 54v9M4 40h9m54 0h9M14.5 14.5l6.4 6.4m38.2 38.2 6.4 6.4m0-51-6.4 6.4M20.9 59.1l-6.4 6.4"/></g><circle cx="40" cy="40" r="20"/></svg>
+                  <span class="weather-cloud" aria-hidden="true"></span><span class="weather-rain" aria-hidden="true"></span><span class="weather-snow" aria-hidden="true">❄</span><span class="weather-night" aria-hidden="true"></span>
+                </div>
+              </div>
+              <div class="weather-metrics">
+                <div class="weather-metric">
+                  <svg class="metric-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 11h17a4 4 0 1 0-4-4M3 16h23a3 3 0 1 1-3 3M3 21h9a4 4 0 1 1-4 4"/></svg>
+                  <span>الرياح <strong id="windSpeed">—</strong><small id="windDirection">—</small></span>
+                </div>
+                <div class="weather-metric">
+                  <svg class="metric-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M16 3S6 14 6 20a10 10 0 0 0 20 0C26 14 16 3 16 3Z"/><path d="M11 20a5 5 0 0 0 5 5"/></svg>
+                  <span>الرطوبة <strong id="humidity">—</strong></span>
+                </div>
+              </div>
+              <div class="widget-toolbar"><button id="weatherLocation" class="widget-action" type="button">اختيار الموقع</button><button id="refreshWeather" class="widget-action" type="button">تحديث</button></div>
+              <p id="weatherStatus" class="widget-status" role="status">حدّد الموقع لعرض الطقس.</p>
+              <p class="widget-note">الحرارة مئوية • بيانات <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a> • <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a></p>
+            </div>
+          </article>
+        </div>
+
+        <!-- الكرت الخامس: قصير افتراضيًا؛ الضغط يوسّعه لعرض الدعاء كاملًا. -->
+        <div class="card-slot">
+          <article id="duaCard" class="dua-card app-card textfont" data-card="green" aria-label="من أدعية النبي ﷺ" aria-busy="false">
+            <div class="card-surface">
+              <details id="duaDetails" class="dua-details">
+                <summary class="dua-summary" title="عرض أو إخفاء الدعاء كاملًا">
+                  <span class="card-top">
+                    <span class="today-label">دعاء</span>
+                    <svg class="widget-icon" viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M16 8C12 4 6 4 2 6v20c4-2 10-2 14 2 4-4 10-4 14-2V6c-4-2-10-2-14 2Zm0 0v20M7 10c2-1 4 0 5 1m-5 4c2-1 4 0 5 1m8-5c1-1 3-2 5-1m-5 6c1-1 3-2 5-1"/></svg>
+                  </span>
+                  <span id="duaText" class="dua-text dua-preview">جارٍ تحميل الدعاء…</span>
+                  <span class="dua-toggle-hint">اضغط لعرض أو إخفاء الدعاء كاملًا</span>
+                </summary>
+                <blockquote id="duaFullText" class="dua-full-text"></blockquote>
+              </details>
+              <div class="dua-footer">
+                <div class="dua-navigation" aria-label="التنقل بين الأدعية">
+                  <button id="previousDua" class="dua-button" type="button" disabled>السابق</button>
+                  <div class="dua-caption">
+                    <a id="duaSource" class="dua-source" target="_blank" rel="noopener noreferrer"></a>
+                    <span id="duaCounter" class="dua-counter" aria-live="polite">—</span>
+                  </div>
+                  <button id="nextDua" class="dua-button" type="button" disabled>التالي</button>
+                </div>
+                <p id="duaStatus" class="dua-status" role="status"></p>
+                <button id="retryDuas" class="dua-retry" type="button" hidden>إعادة تحميل الأدعية</button>
+                <noscript><p>فعّل JavaScript للتنقل بين الأدعية.</p></noscript>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <!-- روابط المالك في config.js، وتفضيلات المستخدم مستقلة. -->
+      <footer class="site-footer" aria-label="حقوق النشر والتواصل">
+        <nav class="footer-links" aria-label="روابط التواصل">
+          <a class="footer-link is-unavailable" data-footer-link="whatsapp" role="link" aria-disabled="true">واتساب</a>
+          <a class="footer-link is-unavailable" data-footer-link="facebook" role="link" aria-disabled="true">فيسبوك</a>
+          <a class="footer-link is-unavailable" data-footer-link="linkedin" role="link" aria-disabled="true">لينكدإن</a>
+          <a class="footer-link" data-footer-link="github" href="https://github.com/ramisadaa" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a class="footer-link is-unavailable" data-footer-link="website" role="link" aria-disabled="true">الموقع الشخصي</a>
+        </nav>
+        <hr class="footer-divider">
+        <p class="footer-copyright">جميع الحقوق محفوظة &copy; <span id="footerYear">2026</span></p>
+        <p class="footer-credit">تصميم <strong>رامي فيصل ابو سعدة</strong></p>
+        <details id="privacyDetails" class="privacy-details"><summary>الخصوصية والعمل دون اتصال</summary>
+          test <a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener noreferrer">شروط Open-Meteo</a>.</p>
+        </details>
+        <p id="offlineStatus" class="widget-note" role="status"></p>
+      </footer>
+    </div>
+  </main>
+  <div class="setting">
+
+
+    <div id="settingsPanel" class="wind" role="dialog" aria-modal="true" aria-label="إعدادات التطبيق" tabindex="-1">
+      <div class="settings-dialog-top"><h2>إعدادات لوحة يومك</h2><button id="closeSettings" type="button" aria-label="إغلاق الإعدادات">×</button></div>
+      <!-- القسم الأول -->
+      <section class="settings-section" aria-labelledby="appearanceTitle">
+        <h2 id="appearanceTitle" class="settings-section-title">الألوان والخطوط</h2>
+
+        <div class="settings-options">
+          <div class="settings-option">
+            <h3 id="colorsTitle" class="settings-label">الألوان</h3>
+            <div class="theme-colors" role="group" aria-labelledby="colorsTitle"></div>
+          </div>
+
+          <div class="settings-option">
+            <h3 id="fontsTitle" class="settings-label">الخطوط</h3>
+            <div class="theme-font" role="group" aria-labelledby="fontsTitle"></div>
+          </div>
+        </div>
+      </section>
+
+      <hr class="settings-divider">
+
+      <section class="settings-section" aria-labelledby="locationSettingsTitle">
+        <h2 id="locationSettingsTitle" class="settings-section-title">الموقع ومواقيت الصلاة</h2>
+        <form id="settingsLocationForm" class="settings-grid">
+          <label class="settings-field">المدينة<input id="settingsCity" required maxlength="100" placeholder="مثال: Gaza" autocomplete="address-level2"></label>
+          <label class="settings-field">الدولة<input id="settingsCountry" required maxlength="100" value="Palestine" autocomplete="country-name"></label>
+          <label class="settings-field settings-wide">طريقة حساب الصلاة<select id="settingsMethod"></select></label>
+          <label class="settings-field settings-wide">المنطقة الزمنية <input id="settingsTimezone" dir="ltr" placeholder="Asia/Hebron" autocomplete="off"></label>
+          <button class="settings-action" type="submit">بحث وحفظ المدينة</button>
+          <button id="settingsGeolocation" class="settings-action settings-action--secondary" type="button">استخدم موقعي الحالي</button>
+          <label class="settings-field">خط العرض<input id="settingsLatitude" type="number" min="-90" max="90" step="any" dir="ltr" placeholder="31.5"></label>
+          <label class="settings-field">خط الطول<input id="settingsLongitude" type="number" min="-180" max="180" step="any" dir="ltr" placeholder="34.47"></label>
+          <button id="settingsCoordinates" class="settings-action settings-action--secondary settings-wide" type="button">حفظ الإحداثيات والتوقيت دون بحث</button>
+        </form>
+        <p class="privacy-note">البحث يرسل اسم المدينة إلى Open-Meteo، والطقس يرسل إحداثياتها إلى الخدمة نفسها. الصلاة والتاريخ يُحسبان محليًا. إذن GPS اختياري، والمنطقة الزمنية قابلة للتعديل.</p>
+        <p id="settingsLocationStatus" class="widget-status" role="status">الموقع المختار يُستخدم للصلاة والطقس والتوقيت. البحث حسب بيانات Open-Meteo / GeoNames.</p>
+      </section>
+      <hr class="settings-divider">
+      <section class="settings-section" aria-labelledby="contentTitle">
+        <h2 id="contentTitle" class="settings-section-title">المحتويات والأحجام</h2>
+        <div class="settings-toggles">
+          <label><input type="checkbox" data-card-toggle="dateCard" checked>التاريخ الهجري</label>
+          <label><input type="checkbox" data-card-toggle="prayerCard" checked>مواقيت الصلاة</label>
+          <label><input type="checkbox" data-card-toggle="currencyCard" checked>أسعار العملات</label>
+          <label><input type="checkbox" data-card-toggle="weatherCard" checked>الطقس</label>
+          <label><input type="checkbox" data-card-toggle="duaCard" checked>الأدعية النبوية</label>
+        </div>
+        <div class="settings-grid">
+          <label class="settings-field settings-wide">عرض الكروت <output id="cardWidthValue">430px</output><input id="cardWidth" type="range" min="300" max="600" step="10" value="430"></label>
+          <label class="settings-field">تعديل التاريخ الهجري<select id="hijriOffset"><option value="-2">ناقص يومين</option><option value="-1">ناقص يوم</option><option value="0">بدون تعديل</option><option value="1">زائد يوم</option><option value="2">زائد يومين</option></select></label>
+          <label class="settings-check settings-wide"><input id="hijriAtSunset" type="checkbox">تبديل اليوم الهجري عند المغرب حسب الموقع المحفوظ</label>
+          <label class="settings-field">عملة المقارنة<select id="currencyBase"><option value="ILS">الشيكل ILS</option><option value="USD">الدولار USD</option><option value="EUR">اليورو EUR</option><option value="JOD">الدينار JOD</option></select></label>
+          <button id="resetView" class="settings-action settings-action--secondary" type="button">استعادة العرض الافتراضي</button>
+          <button id="resetDuaCycle" class="settings-action settings-action--secondary" type="button">بدء دورة أدعية جديدة</button>
+        </div>
+        <p id="preferencesStatus" class="widget-status" role="status"></p>
+      </section>
+      <hr class="settings-divider">
+      <section class="settings-section" aria-labelledby="linksTitle">
+        <h2 id="linksTitle" class="settings-section-title">روابط التواصل</h2>
+        <form id="socialLinksForm" class="settings-grid">
+          <label class="settings-field">واتساب<input id="linkWhatsapp" dir="ltr" placeholder="رقم دولي أو رابط https://wa.me/"></label>
+          <label class="settings-field">فيسبوك<input id="linkFacebook" dir="ltr" type="url" placeholder="https://facebook.com/…"></label>
+          <label class="settings-field">لينكدإن<input id="linkLinkedin" dir="ltr" type="url" placeholder="https://linkedin.com/in/…"></label>
+          <label class="settings-field">GitHub<input id="linkGithub" dir="ltr" type="url" placeholder="https://github.com/…"></label>
+          <label class="settings-field settings-wide">الموقع الشخصي<input id="linkWebsite" dir="ltr" type="url" placeholder="https://…"></label>
+          <button class="settings-action settings-wide" type="submit">حفظ الروابط</button>
+        </form>
+        <p id="linksStatus" class="widget-status" role="status"></p>
+      </section>
+    </div>
+  </div>
+  <script src="config.js"></script>
+  <script src="js/app-core.js"></script>
+  <script src="assets/vendor/adhan-4.4.6.min.js"></script>
+  <script src="js/prayer-core.js"></script>
+  <script src="js/calendar-core.js"></script>
+  <script src="js/location.js"></script>
+  <script src="script.js"></script>
+  <script src="js/preferences.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/prayers.js"></script>
+  <script src="js/currency.js"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/duas.js"></script>
+  <script src="js/footer.js"></script>
+  <script src="js/pwa.js"></script>
+</body>
+</html>

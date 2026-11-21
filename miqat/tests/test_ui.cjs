@@ -1,0 +1,31 @@
+const assert=require('node:assert/strict');
+const {makeApp}=require('./dom.cjs');
+(async()=>{
+ const app=makeApp();await app.flush();
+ assert(app.get('hijriDay').textContent!=='—');assert(app.get('gregorianDate').textContent.includes('تشرين الثاني'));
+ assert(!app.get('prayerSetup').hidden);app.get('prayerSetup').click();assert(app.document.querySelector('.wind').classList.contains('active'));assert.equal(app.document.activeElement,app.get('settingsCity'));app.get('closeSettings').click();
+ app.get('settingsCity').value='غزة';app.get('settingsLocationForm').dispatch('submit');await app.flush();
+ assert.equal(app.app.getLocation().timezone,'Asia/Hebron');assert(app.storage.has('dailyDashboard.location.v1'));assert(app.storage.has('dailyDashboard.prayerDays.v2'));
+ assert.equal(app.get('temperature').textContent,'27°');assert.equal(app.get('windDirection').textContent,'غربي');assert(app.get('nextPrayerName').textContent!=='حدّد المدينة');
+ assert(!app.requests.some(url=>url.includes('aladhan')));
+ const cards=['dateCard','prayerCard','currencyCard','weatherCard','duaCard'];app.document.querySelector('.theme-colors').children[2].click();for(const id of cards)assert.equal(app.get(id).dataset.card,'burgundy');
+ assert.equal(JSON.parse(app.storage.get('dailyDashboard.themeColor.v1')),'burgundy');assert(!app.storage.has('themeColor'));
+ app.document.querySelector('.theme-font').children[1].click();assert(app.document.documentElement.style['--main-font'].includes('Cairo'));
+ app.get('cardWidth').value='520';app.get('cardWidth').dispatch('input');assert.equal(app.document.documentElement.style['--dashboard-width'],'520px');
+ app.get('currencyBase').value='USD';app.get('currencyBase').dispatch('change');assert(app.get('rateUSD').closest('.rate-row').hidden);
+ app.get('hijriAtSunset').checked=true;app.get('hijriAtSunset').dispatch('change');assert(app.get('calendarNote').textContent.includes('المغرب'));
+ const first=JSON.parse(app.storage.get('dailyDashboard.duaReading.v1'));let ids=new Set(first.readIds),last=first.lastId;
+ for(let i=1;i<15;i++){app.get('nextDua').click();let state=JSON.parse(app.storage.get('dailyDashboard.duaReading.v1'));assert(!ids.has(state.lastId));ids.add(state.lastId);last=state.lastId;}
+ app.get('nextDua').click();let cycle=JSON.parse(app.storage.get('dailyDashboard.duaReading.v1'));assert.equal(cycle.readIds.length,1);assert.notEqual(cycle.lastId,last);assert(app.get('duaSource').href.startsWith('https://sunnah.com/'));
+ const toggles=app.document.querySelectorAll('[data-card-toggle]');for(let i=0;i<4;i++){toggles[i].checked=false;toggles[i].dispatch('change');}toggles[4].checked=false;toggles[4].dispatch('change');assert(toggles[4].checked);app.get('resetView').click();assert(!app.get('hijriAtSunset').checked);assert.equal(app.get('cardWidth').value,'430');
+ const badDuas=makeApp({invalidDuas:true});await badDuas.flush();assert.equal(badDuas.get('duaText').textContent,'الأدعية غير محمّلة');assert(!badDuas.get('retryDuas').hidden);
+ const stored=Object.fromEntries(app.storage);const reload=makeApp({saved:stored,failAll:true});await reload.flush();
+ assert.equal(reload.get('dateCard').dataset.card,'burgundy');assert(reload.get('nextPrayerName').textContent!=='حدّد المدينة');assert.equal(reload.get('temperature').textContent,'27°');
+ reload.setNow('2026-12-20T10:00:00Z');assert(reload.get('nextPrayerTime').textContent!=='--:--','Local calculation must survive beyond the cached month offline');
+ const fail=makeApp({prayerBroken:true});await fail.flush();fail.get('settingsCity').value='Gaza';fail.get('settingsLocationForm').dispatch('submit');await fail.flush();
+ assert(fail.app.getLocation());assert.equal(fail.get('temperature').textContent,'27°');assert(fail.get('prayerStatus').textContent.includes('مكتبة'));
+ const noWeather=makeApp({weatherDown:true});await noWeather.flush();noWeather.get('settingsCity').value='Gaza';noWeather.get('settingsLocationForm').dispatch('submit');await noWeather.flush();assert(noWeather.app.getLocation());assert(noWeather.get('nextPrayerTime').textContent!=='--:--');
+ const denied=makeApp({blocked:true});await denied.flush();denied.document.querySelector('.theme-colors').children[1].click();assert.equal(denied.get('weatherCard').dataset.card,'blue');assert(denied.get('duaStatus').textContent.includes('حفظ'));
+ const hidden=makeApp({saved:{'dailyDashboard.view.v1':JSON.stringify({hiddenCards:['duaCard']})}});await hidden.flush();assert(!hidden.storage.has('dailyDashboard.duaReading.v1'));const toggle=hidden.document.querySelector('[data-card-toggle="duaCard"]');toggle.checked=true;toggle.dispatch('change');assert(hidden.storage.has('dailyDashboard.duaReading.v1'));
+ console.log('PASS: independent location, prayer and weather failures; no prayer API; offline month rollover; shared theme/fonts; storage namespaces; preferences; settings discovery; 15-dua cycles and source URLs; storage denial and hidden-card reading.');
+})().catch(error=>{console.error(error);process.exitCode=1;});

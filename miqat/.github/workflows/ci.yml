@@ -1,0 +1,45 @@
+name: CI
+on:
+  push:
+    branches-ignore: [main, master]
+  pull_request:
+  workflow_call:
+permissions: {}
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1
+        with:
+          python-version: '3.12'
+      - name: Install test dependencies
+        run: python3 -m pip install -r requirements-tests.txt
+      - name: Static checks
+        run: |
+          python3 tools/prepare_pwa.py
+          python3 tools/check_project.py
+      - name: Core and user interface logic
+        run: |
+          node tests/test_core.cjs
+          node tests/test_currency.cjs
+          node tests/test_ui.cjs
+          node tests/test_sw.cjs
+      - name: Quota and concurrent publish tests
+        run: |
+          python3 tests/test_exchange_job.py
+          python3 tests/test_git_publish.py
+      - name: Install Chromium
+        run: python3 -m playwright install --with-deps chromium
+      - name: Browser layout, accessibility and offline checks
+        run: python3 tests/test_visual.py
+      - name: Preserve screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: dashboard-visual-review
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
